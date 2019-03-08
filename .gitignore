@@ -4,4 +4,5 @@ wekan/
 terraform_azure/terraform.tfvars
 terraform_azure/.terraform/
 terraform_azure/terraform.tfstate
+terraform_azure/terraform.tfstate.backup
 terraform_azure/.terraform.tfstate.lock.info
