@@ -21,7 +21,7 @@ Vagrant.configure("2") do |config|
         ubnt.vm.provision "run_prepare", type: "shell", path: "./scripts/prepare.sh"
         ubnt.vm.provision "run_ansible_playbook", type: "shell", inline: <<-SHELL
             cd /vagrant/ansible
-            ansible-playbook -i inventory playbook.yml
+            ansible-playbook -i inventory -b playbook.yml
         SHELL
     end
 end
