@@ -1,0 +1,29 @@
+version: '2'
+services:
+
+  wordpress-app:
+    image: wordpress:latest
+    container_name: wordpress-app
+    restart: always
+    volumes:
+      - ./html:/var/www/html
+    links:
+     - wordpress-db:mysql
+    environment:
+     - WORDPRESS_DB_USER=wpuser
+     - WORDPRESS_DB_PASSWORD=ThisIsMyComplexPassw0rd
+     - WORDPRESS_DB_NAME=wordpressdb
+    ports:
+     - "4321:80"
+
+  wordpress-db:
+    image: mariadb:latest
+    container_name: wordpress-db
+    restart: always
+    volumes:
+      - ./db:/var/lib/mysql
+    environment:
+     - MYSQL_ROOT_PASSWORD=ThisIsMyComplexPassw0rd
+     - MYSQL_DATABASE=wordpressdb
+     - MYSQL_USER=wpuser
+     - MYSQL_PASSWORD=ThisIsMyComplexPassw0rd

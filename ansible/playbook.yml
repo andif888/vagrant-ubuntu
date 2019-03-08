@@ -1,0 +1,119 @@
+---
+- hosts: localhost
+            
+  tasks:  
+
+    - name: Add Apt-Keys
+      apt_key:
+        url: '{{item.name}}'
+        state: present
+      with_items:
+        - { name: 'https://packages.microsoft.com/keys/microsoft.asc' }
+        - { name: 'https://download.docker.com/linux/{{ ansible_distribution | lower }}/gpg' }
+
+    - name: Add Repos
+      apt_repository:
+        repo: '{{item.name}}'
+        filename: '{{item.filename}}'
+        state: present
+      with_items:
+        - { name: 'deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ {{ansible_distribution_release}} main', filename: 'azurecli'}
+        - { name: 'deb [arch=amd64] https://download.docker.com/linux/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} stable', filename: 'docker'}
+
+    - name: Install common packages
+      package:
+        name: '{{item.name}}'
+        state: present
+      with_items:
+        - { name: 'apt-transport-https' }
+        - { name: 'software-properties-common' }
+        - { name: 'bc' }
+        - { name: 'build-essential' }
+        - { name: 'ca-certificates' }
+        - { name: 'curl' }
+        - { name: 'dirmngr' }
+        - { name: 'gconf2' }
+        - { name: 'gnupg2' }
+        - { name: 'lsb-release' }
+        - { name: 'libffi-dev'}
+
+    - name: Install packages
+      package:
+        name: '{{item.name}}'
+        state: present
+      with_items:
+        - { name: 'azure-cli'}
+        - { name: 'borgbackup' }
+        - { name: 'docker-ce' }
+        - { name: 'docker-ce-cli' }
+        - { name: 'containerd.io' }
+        - { name: 'iotop' }
+        - { name: 'atop' }
+        - { name: 'net-tools' }
+
+    - name: Download and install packer
+      unarchive:
+        src: https://releases.hashicorp.com/packer/1.3.5/packer_1.3.5_linux_amd64.zip
+        dest: /usr/local/bin
+        creates: /usr/local/bin/packer
+        remote_src: yes
+
+    - name: Download and install terraform
+      unarchive:
+        src: https://releases.hashicorp.com/terraform/0.11.11/terraform_0.11.11_linux_amd64.zip
+        dest: /usr/local/bin
+        creates: /usr/local/bin/terraform
+        remote_src: yes
+
+    - name: Download and install drone-cli
+      unarchive:
+        src: https://github.com/drone/drone-cli/releases/download/v0.8.6/drone_linux_amd64.tar.gz
+        dest: /usr/local/bin
+        creates: /usr/local/bin/drone
+        remote_src: yes
+    
+    - name: Deploy docker config file
+      template:
+        src: templates/daemon.json.j2
+        dest: /etc/docker/daemon.json
+      notify: restart docker
+
+    - name: add user vagrant to docker group
+      user:
+        name: vagrant
+        group: docker
+        append: yes
+
+    - name: Ensure docker-engine is enabled and started
+      service:
+        name: docker
+        enabled: yes
+        state: started
+
+    - name: Download docker-compose
+      get_url:
+        url: "https://github.com/docker/compose/releases/download/1.23.2/docker-compose-Linux-x86_64"
+        dest: "/usr/local/bin/docker-compose"
+        owner: root
+        group: root
+        mode: 0755
+
+    - name: Install pip docker and docker-compose
+      pip:
+        name: '{{item.name}}'
+        state: latest
+      with_items:
+        - { name: 'pip'}
+        - { name: 'passlib' }
+        - { name: 'docker' }
+        - { name: 'docker-compose' }
+  
+
+  handlers:
+    - name: restart docker
+      service:
+        name: docker
+        state: restarted
+
+   
+      
