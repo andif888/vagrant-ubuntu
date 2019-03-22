@@ -15,7 +15,7 @@ Vagrant.configure("2") do |config|
     end
 
     config.vm.define "winsrv" do |winsrv|
-        winsrv.vm.box = "gusztavvargadr/w16s"
+        winsrv.vm.box = "gusztavvargadr/windows-server"
         winsrv.vm.communicator = "winrm"
   
         # Admin user name and password
@@ -25,7 +25,6 @@ Vagrant.configure("2") do |config|
         winsrv.vm.guest = :windows
         winsrv.windows.halt_timeout = 15
   
-        winsrv.vm.network :forwarded_port, guest: 3389, host: 3392, id: "rdp", auto_correct: true  
         winsrv.vm.network "private_network", virtualbox__intnet: true, ip: "192.168.123.2"
   
         winsrv.vm.provision "shell",
